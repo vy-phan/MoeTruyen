@@ -7,8 +7,7 @@ import type {
   PageAccessResponse,
 } from "../types/manga";
 
-// "/api" cho local
-const BASE_URL = "https://moe.suicaodex.com";
+const BASE_URL = "/api";
 
 export const mangaApi = {
   // 1. Lấy danh sách truyện mới
