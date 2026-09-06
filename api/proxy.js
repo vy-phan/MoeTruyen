@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    // Xử lý CORS Preflight (dành cho các method POST như page-access)
+    // Xử lý CORS Preflight
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -8,23 +8,25 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    // 1. Lấy phần đường dẫn đằng sau /api/
-    const { path, ...otherParams } = req.query;
-    const pathStr = Array.isArray(path) ? path.join('/') : (path || '');
-    const cleanPath = pathStr.replace(/^\/+/, ''); // Bỏ dấu / ở đầu nếu có
+    // 1. Lấy chính xác đường dẫn (ví dụ: v2/manga/top)
+    const matchParam = req.query.match || req.query.path || '';
+    const pathStr = Array.isArray(matchParam) ? matchParam.join('/') : matchParam;
+    const cleanPath = pathStr.replace(/^\/+/, '');
 
-    // 2. Nối lại toàn bộ query params (page=1, limit=16, type=day...)
+    // 2. Gom các query params còn lại (type=day, limit=10, page=1...)
     const searchParams = new URLSearchParams();
-    for (const [key, val] of Object.entries(otherParams)) {
-        if (Array.isArray(val)) {
-            val.forEach((v) => searchParams.append(key, v));
-        } else if (val !== undefined) {
-            searchParams.append(key, val);
+    for (const [key, val] of Object.entries(req.query)) {
+        if (key !== 'match' && key !== 'path') {
+            if (Array.isArray(val)) {
+                val.forEach((v) => searchParams.append(key, v));
+            } else if (val !== undefined) {
+                searchParams.append(key, val);
+            }
         }
     }
     const queryString = searchParams.toString();
 
-    // Tạo URL đích chuyển sang moe.suicaodex.com
+    // URL chuẩn xác sẽ là: https://moe.suicaodex.com/v2/manga/top?type=day&limit=10
     const targetUrl = `https://moe.suicaodex.com/${cleanPath}${queryString ? `?${queryString}` : ''}`;
 
     try {
@@ -32,7 +34,7 @@ export default async function handler(req, res) {
             method: req.method,
             headers: {
                 'Accept': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             },
             body: req.method !== 'GET' && req.method !== 'HEAD' && req.body ? JSON.stringify(req.body) : undefined,
         });
