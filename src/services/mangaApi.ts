@@ -7,7 +7,8 @@ import type {
   PageAccessResponse,
 } from "../types/manga";
 
-const BASE_URL = "/api";
+// "/api" cho local
+const BASE_URL = "https://moe.suicaodex.com";
 
 export const mangaApi = {
   // 1. Lấy danh sách truyện mới
@@ -69,7 +70,7 @@ export const mangaApi = {
     return response.data;
   },
 
-// 🌸 7. Cấp quyền giải mã ảnh IMGX
+  // 🌸 7. Cấp quyền giải mã ảnh IMGX
   getChapterPageAccess: async (
     id: string | number,
     pageIndexes: number[] = [], // BẮT BUỘC: Thêm tham số pageIndexes vào đây
